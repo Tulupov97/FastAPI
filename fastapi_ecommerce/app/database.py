@@ -1,6 +1,5 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime
-from sqlalchemy.orm import sessionmaker, DeclarativeBase, mapped_column, Mapped
-from datetime import datetime
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 DATABASE_URL = "sqlite:///ecommerce.db"
 
