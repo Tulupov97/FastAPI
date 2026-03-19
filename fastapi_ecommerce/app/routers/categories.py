@@ -26,12 +26,12 @@ async def create_category(category: CategoryCreate, db: AsyncSession = Depends(g
     """
     # Проверка существования parent_id, если указан
     if category.parent_id is not None:
-        stmt = select(CategoryModel).where(CategoryModel.id == category.parent_id,
+        parent = select(CategoryModel).where(CategoryModel.id == category.parent_id,
                                            CategoryModel.is_active == True)
-        result = await db.scalars(stmt)
-        parent = result.first()
+        parent = await db.scalars(parent)
+        parent = parent.first()
         if parent is None:
-            raise HTTPException(status_code=400, detail="Parent category not found")
+            raise HTTPException(status_code=404, detail="Parent category not found")
 
     # Создание новой категории
     db_category = CategoryModel(**category.model_dump())
