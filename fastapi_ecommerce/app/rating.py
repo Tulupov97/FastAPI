@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 
 async def update_product_rating(product_id: int, db: AsyncSession):
+    """Обновление рейтинга продукта"""
     result = await db.execute(
         select(func.avg(ReviewModel.grade)).where(
             ReviewModel.product_id == product_id,

@@ -93,13 +93,13 @@ async def update_product(
     current_user: UserModel = Depends(get_current_seller)
 ):
     """
-    Обновляет товар, если он принадлежит текущему продавцу (только для 'seller').
+    Обновляет товар, если он принадлежит текущему продавцу (только для 'seller' или 'admin').
     """
     result = await db.scalars(select(ProductModel).where(ProductModel.id == product_id, ProductModel.is_active == True))
     db_product = result.first()
     if not db_product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-    if db_product.seller_id != current_user.id:
+    if not (db_product.seller_id == current_user.id or current_user.role == 'admin'):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only update your own products")
     category_result = await db.scalars(
         select(CategoryModel).where(CategoryModel.id == product.category_id, CategoryModel.is_active == True)
@@ -128,7 +128,7 @@ async def delete_product(
     product = result.first()
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found or inactive")
-    if product.seller_id != current_user.id:
+    if not (current_user.role == 'admin' or product.seller_id == current_user.id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own products")
     await db.execute(
         update(ProductModel).where(ProductModel.id == product_id).values(is_active=False)

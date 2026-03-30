@@ -12,5 +12,4 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     role: Mapped[str] = mapped_column(String, default="buyer")  # "buyer" or "seller"
-
     products: Mapped[list["Product"]] = relationship("Product", back_populates="seller")
