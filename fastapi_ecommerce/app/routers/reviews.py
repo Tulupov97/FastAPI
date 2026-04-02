@@ -7,7 +7,7 @@ from app.models.products import Product as ProductModel
 from app.models.users import User as UserModel
 from sqlalchemy import select
 from app.auth import get_current_buyer
-from fastapi_ecommerce.app.rating import update_product_rating
+from app.rating import update_product_rating
 
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
