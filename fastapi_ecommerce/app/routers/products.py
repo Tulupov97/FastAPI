@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.categories import Category as CategoryModel
 from app.models.products import Product as ProductModel
 from app.models.users import User as UserModel
-from sqlalchemy import select, func, desc, update
+from sqlalchemy import select, func, desc, update, or_, and_
 from app.auth import get_current_seller
 
 # Создаём маршрутизатор для товаров
@@ -20,6 +20,8 @@ async def get_all_products(
         page_size: int = Query(20, ge=1, le=100),
         category_id: int | None = Query(
             None, description="ID категории для фильтрации"),
+        search: str | None = Query(
+            None, min_length=1, description="Поиск по названию"),
         min_price: float | None = Query(
             None, ge=0, description="Минимальная цена товара"),
         max_price: float | None = Query(
@@ -45,6 +47,10 @@ async def get_all_products(
 
     if category_id is not None:
         filters.append(ProductModel.category_id == category_id)
+    if search is not None:
+        search_value = search.strip()
+        if search_value:
+            filters.append(func.lower(ProductModel.name).like(f"%{search_value.lower()}%"))
     if min_price is not None:
         filters.append(ProductModel.price >= min_price)
     if max_price is not None:
@@ -67,6 +73,8 @@ async def get_all_products(
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
+    
+    
     items = (await db.scalars(products_stmt)).all()
 
     return {
@@ -88,7 +96,7 @@ async def get_products_by_category(category_id: int, db: AsyncSession = Depends(
         .where(CategoryModel.id == category_id,
                CategoryModel.is_active == True)
     )
-    if not category:
+    if not category.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Category not found or inactive")
 
