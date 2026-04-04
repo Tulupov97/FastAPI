@@ -19,6 +19,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token")
 
+
 def hash_password(password: str) -> str:
     """ 
     Преобразует пароль в хеш с использованием bcrypt.
@@ -38,7 +39,8 @@ def create_access_token(data: dict):
     Создаёт access-токен.
     """
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + \
+        timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({
         "exp": expire,
         "token_type": "access",
@@ -51,7 +53,8 @@ def create_refresh_token(data: dict):
     Создаёт refresh-токен с длительным сроком действия и token_type="refresh".
     """
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.now(timezone.utc) + \
+        timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode.update({
         "exp": expire,
         "token_type": "refresh",
@@ -72,8 +75,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
-        token_type: str = payload.get("token_type")   
-        if email is None or token_type != "access":   
+        token_type: str = payload.get("token_type")
+        if email is None or token_type != "access":
             raise credentials_exception
     except jwt.InvalidTokenError:
         raise credentials_exception
@@ -84,19 +87,22 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
         raise credentials_exception
     return user
 
+
 async def get_current_seller(current_user: UserModel = Depends(get_current_user)):
     """
     Проверяет, что пользователь имеет роль 'seller' или 'admin'.
     """
     if not re.match(r"^(buyer|admin)$", current_user.role):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only sellers or admins can perform this action")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Only sellers or admins can perform this action")
     return current_user
+
 
 async def get_current_buyer(current_user: UserModel = Depends(get_current_user)):
     """
     Проверяет, что пользователь имеет роль 'buyer' или 'admin'.
-    """         
+    """
     if not re.match(r"^(buyer|admin)$", current_user.role):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only buyers or admins can perform this action")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Only buyers or admins can perform this action")
     return current_user
-

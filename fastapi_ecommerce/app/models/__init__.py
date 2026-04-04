@@ -2,6 +2,7 @@ from .categories import Category
 from .products import Product
 from .users import User
 from .reviews import Review
+from .orders import Order
 
 
-__all__ = ["Category", "Product", "User", "Review"]
+__all__ = ["Category", "Product", "User", "Review", "Order"]
