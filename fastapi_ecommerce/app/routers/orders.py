@@ -22,8 +22,9 @@ async def get_orders(
     """Получение всех заказов по фильтру"""
 
     if min_price is not None and max_price is not None and min_price > max_price:
-        raise HTTPException(status_code=400, detail="min_price не может быть больше max_price")
-    
+        raise HTTPException(
+            status_code=400, detail="min_price не может быть больше max_price")
+
     filters = [OrderModel.is_active == True]
     if status is not None:
         filters.append(OrderModel.status == status)
@@ -31,7 +32,6 @@ async def get_orders(
         filters.append(OrderModel.total_price >= min_price)
     if max_price is not None:
         filters.append(OrderModel.total_price <= max_price)
-    
 
     # Подсчёт общего количества активных заказов c учётом фильтров
     count_stmt = select(func.count()).select_from(
