@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from app.models.cart_items import CartItem as CartItemModel
-from app.db_depends import AsyncSession
+from app.utils.database.db_depends import AsyncSession
 from sqlalchemy.orm import selectinload
 
 async def _get_cart_item(

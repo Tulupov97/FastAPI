@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
 
-from app.database import Base
+from app.utils.database.database import Base
 
 class Product(Base):
     __tablename__ = "products"

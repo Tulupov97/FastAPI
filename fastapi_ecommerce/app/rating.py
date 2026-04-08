@@ -2,9 +2,7 @@ from sqlalchemy.sql import func
 from sqlalchemy import select
 from app.models.reviews import Review as ReviewModel
 from app.models.products import Product as ProductModel
-from app.db_depends import get_async_db
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends
 
 async def update_product_rating(product_id: int, db: AsyncSession):
     """Обновление рейтинга продукта"""

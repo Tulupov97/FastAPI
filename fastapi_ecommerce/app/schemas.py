@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from datetime import datetime
 from decimal import Decimal
-
+from typing import Annotated
+from fastapi import Form
 
 class CategoryCreate(BaseModel):
     """
@@ -36,12 +37,27 @@ class ProductCreate(BaseModel):
                                     description="Описание товара (до 500 символов)")
     price: Decimal = Field(..., gt=0,
                            description="Цена товара (больше 0)", decimal_places=2)
-    image_url: str | None = Field(
-        None, max_length=200, description="URL изображения товара")
     stock: int = Field(..., ge=0,
                        description="Количество товара на складе (0 или больше)")
     category_id: int = Field(...,
                              description="ID категории, к которой относится товар")
+    
+    @classmethod
+    def as_form(
+            cls,
+            name: Annotated[str, Form(...)],
+            price: Annotated[Decimal, Form(...)],
+            stock: Annotated[int, Form(...)],
+            category_id: Annotated[int, Form(...)],
+            description: Annotated[str | None, Form()] = None,
+    ) -> "ProductCreate":
+        return cls(
+            name=name,
+            description=description,
+            price=price,
+            stock=stock,
+            category_id=category_id,
+        )   
 
 
 class Product(ProductCreate):
@@ -52,6 +68,7 @@ class Product(ProductCreate):
     id: int = Field(..., description="Уникальный идентификатор товара")
     rating: float = Field(..., ge=0, le=5,
                           description="Средняя оценка товара (0-5)")
+    image_url: str | None = Field(None, description="URL изображения товара")
     is_active: bool = Field(..., description="Активность товара")
 
     model_config = ConfigDict(from_attributes=True)
@@ -129,18 +146,6 @@ class OrderList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ProductList(BaseModel):
-    """
-    Список пагинации для товаров.
-    """
-    items: list[Product] = Field(description="Товары для текущей страницы")
-    total: int = Field(ge=0, description="Общее количество товаров")
-    page: int = Field(ge=1, description="Номер текущей страницы")
-    page_size: int = Field(
-        ge=1, description="Количество элементов на странице")
-
-    model_config = ConfigDict(from_attributes=True)
-
 class CartItemBase(BaseModel):
     product_id: int = Field(description="ID товара")
     quantity: int = Field(ge=1, description="Количество товара")
@@ -170,4 +175,5 @@ class Cart(BaseModel):
     total_price: Decimal = Field(..., ge=0, description="Общая стоимость товаров")
 
     model_config = ConfigDict(from_attributes=True)
+
 

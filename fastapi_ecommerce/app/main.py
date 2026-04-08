@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from app.routers import categories, products, users, reviews, orders, cart
+from fastapi.staticfiles import StaticFiles
+
 
 app = FastAPI(title='FastAPI e-shop', version='0.1.0')
 
@@ -16,3 +18,5 @@ async def root():
     Корневой маршрут, подтверждающий, что API работает.
     """
     return {"message": "Добро пожаловать в API интернет-магазина!"}
+
+app.mount("/media", StaticFiles(directory="media"), name="media")

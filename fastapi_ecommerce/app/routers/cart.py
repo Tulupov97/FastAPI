@@ -1,14 +1,12 @@
 from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-
 from app.auth import get_current_user
-from app.db_depends import get_async_db
 from app.models.cart_items import CartItem as CartItemModel
-from app.models.products import Product as ProductModel
 from app.models.users import User as UserModel
+from app.utils.database.db_depends import get_async_db
 from app.utils.ensure_product_available import _ensure_product_available
 from app.utils.get_cart_item import _get_cart_item
 from app.schemas import (
@@ -88,20 +86,6 @@ async def update_cart_item(
     await db.commit()
     updated_item = await _get_cart_item(db, current_user.id, product_id)
     return updated_item
-
-@router.delete("/items/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def remove_item_from_cart(
-    product_id: int,
-    db: AsyncSession = Depends(get_async_db),
-    current_user: UserModel = Depends(get_current_user),
-):
-    cart_item = await _get_cart_item(db, current_user.id, product_id)
-    if not cart_item:
-        raise HTTPException(status_code=404, detail="Cart item not found")
-
-    await db.delete(cart_item)
-    await db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.delete("/items/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_item_from_cart(

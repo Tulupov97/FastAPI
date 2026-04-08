@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from app.schemas import Review as ReviewSchema, ReviewCreate
-from app.db_depends import get_async_db
+from app.utils.database.db_depends import get_async_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.reviews import Review as ReviewModel
 from app.models.products import Product as ProductModel
@@ -8,6 +8,10 @@ from app.models.users import User as UserModel
 from sqlalchemy import select
 from app.auth import get_current_buyer
 from app.rating import update_product_rating
+
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
@@ -26,7 +30,7 @@ async def get_reviews_by_product(product_id: int, db: AsyncSession = Depends(get
     if not await db.scalar(select(ProductModel).where(ProductModel.id == product_id)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-    reviews = await db.scalars(select(ReviewModel).where(ReviewModel.product_id == product_id))
+    reviews = await db.scalars(select(ReviewModel).where(ReviewModel.product_id == product_id, ReviewModel.is_active == True))
     return reviews
 
 
@@ -48,7 +52,9 @@ async def delete_review(review_id: int, db: AsyncSession = Depends(get_async_db)
     if not review:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
-    await update_product_rating(review.product_id, db)
+
     review.is_active = False
+    await update_product_rating(review.product_id, db)
+    await db.commit()
     await db.refresh(review)  # Для возврата is_active = False
     return {"message": "Review deleted"}
