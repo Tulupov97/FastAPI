@@ -172,7 +172,7 @@ async def create_product(
     return db_product
 
 
-@router.put("/{product_id}", response_model=ProductSchema)
+@router.put("/{product_id}", response_model=ProductSchema, status_code=status.HTTP_200_OK)
 async def update_product(
     product_id: int,
     product: ProductCreate,
@@ -183,12 +183,12 @@ async def update_product(
     """
     Обновляет товар, если он принадлежит текущему продавцу (только для 'seller' или 'admin').
     """
-    result = await db.scalars(select(ProductModel).where(ProductModel.id == product_id, ProductModel.is_active == True))
+    result = await db.scalars(select(ProductModel).where(ProductModel.id == product_id))
     db_product = result.first()
     if not db_product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-    if not (db_product.seller_id == current_user.id or current_user.role == 'admin'):
+    if not db_product.seller_id == current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="You can only update your own products")
     category_result = await db.scalars(
